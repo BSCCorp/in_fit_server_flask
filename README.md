@@ -11,13 +11,19 @@ Configure:
 cp .env.example .env
 ```
 
-# Development
-
 Activate environment:
 
 ```
 source .venv/bin/activate
 ```
+
+# Test
+
+```
+pytest
+```
+
+# Development
 
 ## Formatting, delinting
 
@@ -73,7 +79,8 @@ chmod 600 /opt/flask-infit-api/.env
 Create a key on the local machine:
 
 ```
-ssh-keygen -t ed25519 -C "github-actions-flask-infit-api-deploy"                                                                                                                        ```
+ssh-keygen -t ed25519 -C "github-actions-flask-infit-api-deploy"
+```
 
 When prompted, name it:
 
