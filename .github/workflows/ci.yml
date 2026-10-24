@@ -51,7 +51,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --tag flask-api:test \
+            --tag flask-infit-api:test \
             .
 
       - name: Run container smoke test
@@ -60,13 +60,13 @@ jobs:
           set -euo pipefail
 
           docker run -d \
-            --name flask-api-test \
+            --name flask-infit-api-test \
             -p 127.0.0.1:18000:8000 \
-            flask-api:test
+            flask-infit-api:test
 
           cleanup() {
-            docker logs flask-api-test || true
-            docker rm -f flask-api-test >/dev/null 2>&1 || true
+            docker logs flask-infit-api-test || true
+            docker rm -f flask-infit-api-test >/dev/null 2>&1 || true
           }
 
           trap cleanup EXIT
@@ -169,13 +169,13 @@ jobs:
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
             docker-compose.prod.yml \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-api/docker-compose.prod.yml"
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-infit-api/docker-compose.prod.yml"
 
           scp \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
             deploy/deploy.sh \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-api/deploy.sh"
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-infit-api/deploy.sh"
 
       - name: Deploy image
         env:
@@ -187,5 +187,5 @@ jobs:
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "bash /opt/flask-api/deploy.sh '$IMAGE_REF'"
+            "bash /opt/flask-infit-api/deploy.sh '$IMAGE_REF'"
 
