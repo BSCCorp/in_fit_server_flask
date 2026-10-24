@@ -29,3 +29,26 @@ def test_missing_video_returns_404(client):
     response = client.get("/videos/missing.mp4")
 
     assert response.status_code == 404
+
+def test_video_is_served_from_nested_directory(client, app):
+    video_path = (
+        app.config["VIDEO_DIR"]
+        / "jennifer-kries"
+        / "the-method-pilates"
+        / "target-specifics"
+        / "00-introduction"
+        / "stream.mpd"
+    )
+    video_path.parent.mkdir(parents=True, exist_ok=True)
+    video_path.write_text(
+        '<?xml version="1.0"?><MPD></MPD>',
+        encoding="utf-8",
+    )
+
+    response = client.get(
+        "/videos/jennifer-kries/the-method-pilates/"
+        "target-specifics/00-introduction/stream.mpd"
+    )
+
+    assert response.status_code == 200
+    assert b"<MPD>" in response.data
