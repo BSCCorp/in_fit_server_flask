@@ -42,5 +42,8 @@ services:
 
     networks:
       - nginx-proxy
-        external: true
+
+networks:
+  nginx-proxy:
+    external: true
 
