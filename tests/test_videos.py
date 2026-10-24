@@ -2,9 +2,7 @@
 
 
 def test_video_is_served(client, app):
-    video_path = (
-        app.config["VIDEO_DIR"] / "sample.mp4"
-    )
+    video_path = app.config["VIDEO_DIR"] / "sample.mp4"
     video_path.write_bytes(b"sample video content")
 
     response = client.get("/videos/sample.mp4")
@@ -31,4 +29,3 @@ def test_missing_video_returns_404(client):
     response = client.get("/videos/missing.mp4")
 
     assert response.status_code == 404
-

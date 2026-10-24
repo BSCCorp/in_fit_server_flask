@@ -49,4 +49,3 @@ def create_app(test_config: dict | None = None) -> Flask:
         return None
 
     return app
-

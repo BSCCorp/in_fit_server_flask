@@ -125,17 +125,14 @@ def get_catalog(base_url: str) -> list[dict[str, Any]]:
             "id": "6",
             "title": "Florida Man Wrestles Gator",
             "description": (
-                "Witness a brave Florida Man catch and subdue "
-                "a filthy swamp lizard."
+                "Witness a brave Florida Man catch and subdue a filthy swamp lizard."
             ),
             "influencer": "Florida Man",
             "thumbnail": (
-                f"{base_url}/videos/florida-man/swamp-puppies/"
-                "wrasslin/images/gator.jpg"
+                f"{base_url}/videos/florida-man/swamp-puppies/wrasslin/images/gator.jpg"
             ),
             "source": (
-                f"{base_url}/videos/florida-man/swamp-puppies/"
-                "wrasslin/stream.mpd"
+                f"{base_url}/videos/florida-man/swamp-puppies/wrasslin/stream.mpd"
             ),
             "contentType": "application/dash+xml",
             "aspectRatio": "9/16",
@@ -149,29 +146,10 @@ def get_catalog(base_url: str) -> list[dict[str, Any]]:
 # Move these into an appropriate secret-management mechanism if they are
 # production decryption keys; do not expose them in logs.
 KEYS = {
-  "1": {
-    "k": "YGdr1s2ctWfP5DLg2e-5vA",  
-    "kid": "zs5NjiuGPqr_YumJFVe4rQ"
-  },  
-  "2": {
-    "k": "3DGjLFb6ekf6dKWODQWcnw",  
-    "kid": "trybSdqAABaygwfncAG-lw"
-  },
-  "3": {
-    "k": "MCjCa7_0iuHdBVFV57f2-g",  
-    "kid": "xTjwb_yC6MKU-Rwb2aTOqQ"
-  },
-  "4": {
-    "k": "ElKhgxu3mhJQN6jn7s6TtA",  
-    "kid": "rGVhfk9gCtlDX9_PU7gNfw"
-  },
-  "5": {
-    "k": "xsBxLL6sjpP8HMTI9A57_A",  
-    "kid": "8Q2-ou_fRrQO83Vz4UclGw"
-  },
-  "6": {
-    "k": "3LoR6oiYCsHQ3Vte2yaC7Q",  
-    "kid": "APs4ZOK3avnWw8mTpwUQbQ"
-  },
+    "1": {"k": "YGdr1s2ctWfP5DLg2e-5vA", "kid": "zs5NjiuGPqr_YumJFVe4rQ"},
+    "2": {"k": "3DGjLFb6ekf6dKWODQWcnw", "kid": "trybSdqAABaygwfncAG-lw"},
+    "3": {"k": "MCjCa7_0iuHdBVFV57f2-g", "kid": "xTjwb_yC6MKU-Rwb2aTOqQ"},
+    "4": {"k": "ElKhgxu3mhJQN6jn7s6TtA", "kid": "rGVhfk9gCtlDX9_PU7gNfw"},
+    "5": {"k": "xsBxLL6sjpP8HMTI9A57_A", "kid": "8Q2-ou_fRrQO83Vz4UclGw"},
+    "6": {"k": "3LoR6oiYCsHQ3Vte2yaC7Q", "kid": "APs4ZOK3avnWw8mTpwUQbQ"},
 }
-

@@ -11,4 +11,3 @@ def live():
 @health_bp.get("/ready")
 def ready():
     return jsonify({"status": "ok"}), 200
-

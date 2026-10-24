@@ -10,9 +10,7 @@ def test_catalog_returns_six_videos(client):
 
     assert isinstance(videos, list)
     assert len(videos) == 6
-    assert [video["id"] for video in videos] == [
-        "1", "2", "3", "4", "5", "6"
-    ]
+    assert [video["id"] for video in videos] == ["1", "2", "3", "4", "5", "6"]
 
 
 def test_catalog_preserves_response_fields(client):
@@ -57,4 +55,3 @@ def test_catalog_uses_configured_base_url(client):
         video["source"].startswith("https://api.example.com/videos/")
         for video in videos
     )
-

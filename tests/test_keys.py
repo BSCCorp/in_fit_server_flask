@@ -32,4 +32,3 @@ def test_unknown_key_returns_404(client):
     response = client.get("/key/unknown")
 
     assert response.status_code == 404
-

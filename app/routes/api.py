@@ -1,6 +1,5 @@
 """Routes migrated from the legacy Express API."""
 
-
 from flask import Blueprint, abort, current_app, jsonify, request, send_from_directory
 
 from app.data import KEYS, get_catalog
@@ -35,6 +34,7 @@ def get_key(video_id: str):
         }
     )
 
+
 @api_bp.post("/log")
 def log_message():
     log_file = current_app.config["LOG_FILE"]
@@ -47,7 +47,7 @@ def log_message():
         message = request.form.get("message")
 
     if not isinstance(message, str):
-      return {"error": "A string 'message' field is required"}, 400
+        return {"error": "A string 'message' field is required"}, 400
 
     try:
         log_file.parent.mkdir(parents=True, exist_ok=True)
@@ -61,6 +61,7 @@ def log_message():
 
     return "", 201
 
+
 @api_bp.route("/videos/<path:filename>", methods=["GET", "HEAD"])
 def serve_video(filename: str):
     """Serve video assets, including support for HTTP range requests."""
@@ -69,4 +70,3 @@ def serve_video(filename: str):
         filename,
         conditional=True,
     )
-
