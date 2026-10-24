@@ -3,7 +3,7 @@
 set -Eeuo pipefail
 
 APP_DIR="/opt/flask-infit-api"
-COMPOSE_FILE="${APP_DIR}/compose.prod.yaml"
+COMPOSE_FILE="${APP_DIR}/docker-compose.prod.yml"
 CURRENT_IMAGE_FILE="${APP_DIR}/current-image"
 
 NEW_IMAGE="${1:?Usage: deploy.sh <image-reference>}"
