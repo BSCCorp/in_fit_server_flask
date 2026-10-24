@@ -20,7 +20,7 @@ source .venv/bin/activate
 # Test
 
 ```
-pytest
+pytest --cov=app --cov-report=term-missing
 ```
 
 # Development
@@ -72,6 +72,12 @@ Protect the `.env` file:
 
 ```
 chmod 600 /opt/flask-infit-api/.env
+```
+
+Upload videos:
+
+```
+rsync -a --progress --delete --update ./videos app@api.0yy.ca:/opt/flask-infit-api
 ```
 
 ## GitHub Secrets
