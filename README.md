@@ -17,6 +17,12 @@ Activate environment:
 source .venv/bin/activate
 ```
 
+Install dependencies:
+
+```
+pip install -e ".[dev]"
+```
+
 # Test
 
 ```
@@ -32,6 +38,7 @@ Run checks:
 ```
 ruff check .
 ruff format --check .
+ruff check --fix .
 mypy
 pytest --cov=app --cov-branch --cov-report=term-missing
 ```
@@ -290,9 +297,9 @@ In the GitHub repository, open **Settings → Secrets and variables → Actions*
 - DEPLOY_SSH_KEY: Private deployment key
 - DEPLOY_KNOWN_HOSTS: Verified SSH host-key entry
 
-## Require CI to pass before merging
+## TODO: Require CI to pass before merging
 
-In your GitHub repository:
+In repository:
 
 1. Open **Settings → Rulesets.**
 2. Create a branch ruleset targeting main.
@@ -305,9 +312,11 @@ This prevents ordinary changes from bypassing the automated checks.
 
 The CI job is named `test`, so that is the status check to select.
 
+## TODO: Versioning, rollback
+
 ## Server-side
 
-Once deployed, remember to set the `IMAGE_REF` if inspect the container, E.g.:
+Once deployed, remember to set the `IMAGE_REF` to inspect the container, E.g.:
 
 ```
 export IMAGE_REF="$(cat current-image)"
