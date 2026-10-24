@@ -12,9 +12,10 @@ RUN python -m venv /opt/venv
 
 ENV PATH="/opt/venv/bin:$PATH"
 
-COPY requirements.lock .
+COPY pyproject.toml .
+COPY app/ ./app/
 
-RUN pip install --no-cache-dir -r requirements.lock
+RUN pip install --no-cache-dir .
 
 
 FROM python:3.12-slim AS runtime
@@ -36,12 +37,5 @@ USER app
 
 EXPOSE 8000
 
-CMD [
-    "gunicorn",
-    "--bind", "0.0.0.0:8000",
-    "--workers", "2",
-    "--access-logfile", "-",
-    "--error-logfile", "-",
-    "wsgi:app"
-]
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--access-logfile", "-", "--error-logfile", "-", "wsgi:app"]
 

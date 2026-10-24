@@ -51,7 +51,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker build \
-            --tag flask-api:test \
+            --tag flask-infit-api:test \
             .
 
       - name: Run container smoke test
@@ -60,13 +60,13 @@ jobs:
           set -euo pipefail
 
           docker run -d \
-            --name flask-api-test \
+            --name flask-infit-api-test \
             -p 127.0.0.1:18000:8000 \
-            flask-api:test
+            flask-infit-api:test
 
           cleanup() {
-            docker logs flask-api-test || true
-            docker rm -f flask-api-test >/dev/null 2>&1 || true
+            docker logs flask-infit-api-test || true
+            docker rm -f flask-infit-api-test >/dev/null 2>&1 || true
           }
 
           trap cleanup EXIT
@@ -91,6 +91,7 @@ jobs:
           name: coverage-report
           path: coverage.xml
           if-no-files-found: ignore
+
   publish:
     needs: test
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
@@ -115,12 +116,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Set image name
+        id: image
+        shell: bash
+        run: |
+          echo "name=ghcr.io/${GITHUB_REPOSITORY,,}" >> "$GITHUB_OUTPUT"
+
       - name: Build and publish image
         uses: docker/build-push-action@v7
         with:
           context: .
           push: true
-          tags: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          tags: ${{ steps.image.outputs.name }}:${{ github.sha }}
 
   deploy:
     needs: publish
@@ -161,24 +168,33 @@ jobs:
           scp \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
-            compose.prod.yaml \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-api/compose.prod.yaml"
+            docker-compose.prod.yml \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-infit-api/docker-compose.prod.yml"
 
           scp \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
             deploy/deploy.sh \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-api/deploy.sh"
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-infit-api/deploy.sh"
 
       - name: Deploy image
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          IMAGE_REF: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+          IMAGE_SHA: ${{ github.sha }}
+        shell: bash
         run: |
+          set -euo pipefail
+
+          IMAGE_REF="ghcr.io/${REPOSITORY,,}:${IMAGE_SHA}"
+
+          echo "Deploying image: $IMAGE_REF"
+
           ssh \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
-            "bash /opt/flask-api/deploy.sh '$IMAGE_REF'"
+            "bash /opt/flask-infit-api/deploy.sh '$IMAGE_REF'"
+
 
