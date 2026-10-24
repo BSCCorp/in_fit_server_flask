@@ -16,4 +16,3 @@ def serve_video(filename: str):
         filename,
         conditional=True,
     )
-

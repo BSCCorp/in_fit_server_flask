@@ -30,6 +30,7 @@ def test_missing_video_returns_404(client):
 
     assert response.status_code == 404
 
+
 def test_video_is_served_from_nested_directory(client, app):
     video_path = (
         app.config["VIDEO_DIR"]

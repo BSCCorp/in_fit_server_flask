@@ -30,9 +30,7 @@ def create_app(test_config: dict | None = None) -> Flask:
             response.headers["Access-Control-Allow-Origin"] = receiver_url
 
         if request.path.startswith("/videos/"):
-            response.headers["Access-Control-Allow-Methods"] = (
-                "GET, HEAD, OPTIONS"
-            )
+            response.headers["Access-Control-Allow-Methods"] = "GET, HEAD, OPTIONS"
             response.headers["Access-Control-Allow-Headers"] = (
                 "Origin, Content-Type, Accept, Range"
             )
