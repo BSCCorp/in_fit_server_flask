@@ -6,6 +6,7 @@ from app.config import Config
 from app.errors import register_error_handlers
 from app.routes.api import api_bp
 from app.routes.health import health_bp
+from app.routes.videos import videos_bp
 
 
 def create_app(test_config: dict | None = None) -> Flask:
@@ -19,6 +20,7 @@ def create_app(test_config: dict | None = None) -> Flask:
 
     app.register_blueprint(api_bp)
     app.register_blueprint(health_bp, url_prefix="/health")
+    app.register_blueprint(videos_bp)
 
     @app.after_request
     def add_cors_headers(response):
@@ -27,8 +29,10 @@ def create_app(test_config: dict | None = None) -> Flask:
         if receiver_url:
             response.headers["Access-Control-Allow-Origin"] = receiver_url
 
-        if request.path.startswith("/videos/") and response.status_code < 400:
-            response.headers["Access-Control-Allow-Methods"] = "GET, OPTIONS"
+        if request.path.startswith("/videos/"):
+            response.headers["Access-Control-Allow-Methods"] = (
+                "GET, HEAD, OPTIONS"
+            )
             response.headers["Access-Control-Allow-Headers"] = (
                 "Origin, Content-Type, Accept, Range"
             )
