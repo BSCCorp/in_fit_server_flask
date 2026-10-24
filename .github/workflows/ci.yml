@@ -2,10 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [devops/initial-deployment]
+    branches: [main]
 
   pull_request:
-    branches: [devops/initial-deployment]
+    branches: [main]
 
   workflow_dispatch:
 
@@ -94,7 +94,7 @@ jobs:
 
   publish:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/devops/initial-deployment'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
 
     runs-on: ubuntu-latest
 
