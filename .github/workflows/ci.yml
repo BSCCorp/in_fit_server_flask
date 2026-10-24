@@ -168,8 +168,8 @@ jobs:
           scp \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
-            docker-compose.prod.yaml \
-            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-api/docker-compose.prod.yaml"
+            docker-compose.prod.yml \
+            "${DEPLOY_USER}@${DEPLOY_HOST}:/opt/flask-api/docker-compose.prod.yml"
 
           scp \
             -i ~/.ssh/deploy_key \
