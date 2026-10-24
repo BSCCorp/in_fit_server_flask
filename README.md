@@ -193,30 +193,14 @@ docker pull ghcr.io/bsccorp/flask-infit-api-web:latest
 
 If both work, your authentication is set up.
 
-
-## Require CI to pass before merging
-
-In your GitHub repository:
-
-1. Open **Settings → Rules → Rulesets.**
-2. Create a branch ruleset targeting main.
-3. Require pull requests before merging.
-4. Require the test status check to pass.
-5. Block force pushes and deletion of main.
-6. Require review if your workflow calls for it.
-
-This prevents ordinary changes from bypassing the automated checks.
-
-The CI job is named test, so that is the status check to select.
-
 ## Automate deployment over SSH
 
-The deployment should occur only after the tests pass and the image is published.
+The deployment occurs only after the tests pass and the image is published.
 
-A straightforward setup is:
+Basic workflow:
 
 1. GitHub Actions builds and publishes the image.
-2. GitHub Actions connects to your Ubuntu server over SSH.
+2. GitHub Actions connects to the Ubuntu server over SSH.
 3. The server pulls the exact image associated with the commit.
 4. Docker Compose starts the new container.
 5. A health check confirms the application is responding.
@@ -224,12 +208,88 @@ A straightforward setup is:
 
 ### Prepare SSH access
 
-Create a dedicated deployment SSH key pair. Add its public key to the deployment user's `~/.ssh/authorized_keys` on the Ubuntu server.
+#### `DEPLOY_SSH_KEY`
 
-In your GitHub repository, open **Settings → Secrets and variables → Actions** and configure these repository or environment secrets:
+Create a dedicated deployment SSH key pair.
+
+```
+ssh-keygen -t ed25519 -C "github-actions-flask-infit-api-deploy"
+```
+
+When prompted, name it:
+
+```
+~/.ssh/github-actions-flask-infit-api-deploy
+```
+
+Copy the public key to the clipboard:
+
+```
+xclip -selection clipboard <  ~/.ssh/github-actions-flask-infit-api-deploy.pub
+```
+
+Login to the host machine:
+
+```
+vim ~/.ssh/authorized_keys
+```
+
+Paste the public key as one line.
+
+Test the key from the local machine:
+
+```
+ssh -i ~/.ssh/github-actions-flask-infit-api-deploy deploy@YOUR_SERVER_IP
+```
+
+This will provide the value for the `DEPLOY_SSH_KEY` Action value.
+
+#### `DEPLOY_KNOWN_HOSTS`
+
+`DEPLOY_KNOWN_HOSTS` is a GitHub Actions secret containing the SSH host key for the Ubuntu server. It lets GitHub Actions verify that it's connecting to the actual server when deploying, rather than an impostor.
+
+On the server, execute:
+
+```
+sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
+```
+
+Retrieve the public host key:
+
+```
+sudo cat /etc/ssh/ssh_host_ed25519_key.pub
+```
+
+Format the key. The known_hosts file needs the hostname or IP address followed by the public host key.
+
+For example, if the server is 203.0.113.10, the entry would look like:
+
+```
+203.0.113.10 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKeyData
+```
+
+#### Set Action Secrets
+
+In the GitHub repository, open **Settings → Secrets and variables → Actions** and configure these repository or environment secrets:
 
 - DEPLOY_HOST: Server hostname or IP address
 - DEPLOY_USER: SSH deployment username
 - DEPLOY_SSH_KEY: Private deployment key
 - DEPLOY_KNOWN_HOSTS: Verified SSH host-key entry
+
+## Require CI to pass before merging
+
+In your GitHub repository:
+
+1. Open **Settings → Rulesets.**
+2. Create a branch ruleset targeting main.
+3. Require pull requests before merging.
+4. Require the status checks to pass.
+5. Block force pushes and deletion of main.
+6. Require review if your workflow calls for it.
+
+This prevents ordinary changes from bypassing the automated checks.
+
+The CI job is named `test`, so that is the status check to select.
+
 
