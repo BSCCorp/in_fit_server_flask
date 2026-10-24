@@ -301,7 +301,7 @@ The CI job is named `test`, so that is the status check to select.
 
 ## Server-side
 
-Once deployed, remember to set the `IMAGE_REF` if inspect the container:
+Once deployed, remember to set the `IMAGE_REF` if inspect the container, E.g.:
 
 ```
 export IMAGE_REF="$(cat current-image)"
