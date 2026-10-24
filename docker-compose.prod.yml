@@ -1,13 +1,20 @@
 services:
   api:
     image: ${IMAGE_REF:?IMAGE_REF must be set}
-
     container_name: flask-infit-api
-
     restart: unless-stopped
 
     env_file:
       - /opt/flask-infit-api/.env
+
+    environment:
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      VIRTUAL_PORT: "8000"
+      LETSENCRYPT_HOST: ${VIRTUAL_HOST}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+
+    expose:
+      - "8000"
 
     ports:
       - "127.0.0.1:8000:8000"
@@ -35,9 +42,5 @@ services:
 
     networks:
       - nginx-proxy
-
-networks:
-
-  nginx-proxy:
-    external: true
+        external: true
 
