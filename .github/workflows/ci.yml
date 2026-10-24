@@ -94,7 +94,7 @@ jobs:
 
   publish:
     needs: test
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    if: github.event_name == 'push' && github.ref == 'refs/heads/devops/initial-deployment'
   
     runs-on: ubuntu-latest
   
