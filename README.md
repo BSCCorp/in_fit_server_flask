@@ -299,4 +299,13 @@ This prevents ordinary changes from bypassing the automated checks.
 
 The CI job is named `test`, so that is the status check to select.
 
+## Server-side
+
+Once deployed, remember to set the `IMAGE_REF` if inspect the container:
+
+```
+export IMAGE_REF="$(cat current-image)"
+docker compose -f docker-compose.prod.yml config
+```
+
 
