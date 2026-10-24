@@ -181,11 +181,20 @@ jobs:
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
           DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
-          IMAGE_REF: ghcr.io/${{ github.repository }}:${{ github.sha }}
+          REPOSITORY: ${{ github.repository }}
+          IMAGE_SHA: ${{ github.sha }}
+        shell: bash
         run: |
+          set -euo pipefail
+
+          IMAGE_REF="ghcr.io/${REPOSITORY,,}:${IMAGE_SHA}"
+
+          echo "Deploying image: $IMAGE_REF"
+
           ssh \
             -i ~/.ssh/deploy_key \
             -o StrictHostKeyChecking=yes \
             "${DEPLOY_USER}@${DEPLOY_HOST}" \
             "bash /opt/flask-infit-api/deploy.sh '$IMAGE_REF'"
+
 
