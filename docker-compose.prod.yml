@@ -2,12 +2,12 @@ services:
   api:
     image: ${IMAGE_REF:?IMAGE_REF must be set}
 
-    container_name: flask-api
+    container_name: flask-infit-api
 
     restart: unless-stopped
 
     env_file:
-      - /opt/flask-api/app.env
+      - /opt/flask-infit-api/.env
 
     ports:
       - "127.0.0.1:8000:8000"
@@ -32,4 +32,12 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+
+    networks:
+      - nginx-proxy
+
+networks:
+
+  nginx-proxy:
+    external: true
 
