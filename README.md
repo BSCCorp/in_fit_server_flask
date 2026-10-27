@@ -31,6 +31,13 @@ pytest --cov=app --cov-report=term-missing
 
 # Development
 
+Run server:
+
+```
+flask --app app run --debug
+```
+
+
 ## Formatting, delinting
 
 Run checks:
