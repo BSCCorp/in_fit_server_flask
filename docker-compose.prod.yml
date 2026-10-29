@@ -1,4 +1,51 @@
 services:
+  nginx-proxy:
+    image: nginxproxy/nginx-proxy:latest
+    container_name: nginx-proxy
+    restart: unless-stopped
+
+    ports:
+      - "80:80"
+      - "443:443"
+
+    volumes:
+      - certs:/etc/nginx/certs:ro
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - /var/run/docker.sock:/tmp/docker.sock:ro
+
+    networks:
+      - nginx-proxy
+
+  acme-companion:
+    image: nginxproxy/acme-companion:latest
+    container_name: nginx-proxy-acme
+    restart: unless-stopped
+
+    depends_on:
+      - nginx-proxy
+
+    environment:
+      DEFAULT_EMAIL: ${LETSENCRYPT_EMAIL:?LETSENCRYPT_EMAIL must be set}
+      NGINX_PROXY_CONTAINER: nginx-proxy
+      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      VIRTUAL_PORT: "8000"
+      LETSENCRYPT_HOST: ${VIRTUAL_HOST}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      BASE_URL: ${BASE_URL}
+      TITLE: ${TITLE}
+
+
+    volumes:
+      - certs:/etc/nginx/certs
+      - vhost.d:/etc/nginx/vhost.d
+      - html:/usr/share/nginx/html
+      - acme:/etc/acme.sh
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+    networks:
+      - nginx-proxy
+
   api:
     image: ${IMAGE_REF:?IMAGE_REF must be set}
     container_name: flask-infit-api
@@ -8,19 +55,16 @@ services:
       - /opt/flask-infit-api/.env
 
     environment:
-      VIRTUAL_HOST: ${VIRTUAL_HOST}
+      VIRTUAL_HOST: ${VIRTUAL_HOST:?VIRTUAL_HOST must be set}
       VIRTUAL_PORT: "8000"
-      LETSENCRYPT_HOST: ${VIRTUAL_HOST}
-      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL}
+      LETSENCRYPT_HOST: ${VIRTUAL_HOST:?VIRTUAL_HOST must be set}
+      LETSENCRYPT_EMAIL: ${LETSENCRYPT_EMAIL:?LETSENCRYPT_EMAIL must be set}
 
     expose:
       - "8000"
 
     volumes:
       - /opt/flask-infit-api/videos:/app/videos:ro
-
-    ports:
-      - "127.0.0.1:8000:8000"
 
     healthcheck:
       test:
@@ -46,7 +90,14 @@ services:
     networks:
       - nginx-proxy
 
+volumes:
+  certs:
+  vhost.d:
+  html:
+  acme:
+
 networks:
   nginx-proxy:
-    external: true
+    name: nginx-proxy
+    driver: bridge
 
