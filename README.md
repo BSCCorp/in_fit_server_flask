@@ -65,22 +65,141 @@ curl -i http://127.0.0.1:8000/health/ready
 
 # Production
 
-Deployed to Ubuntu server:
+Deploy to AWS
+
+## Install Terraform
+
+Add HashiCorp's signing key:
 
 ```
-sudo mkdir -p /opt/flask-infit-api
-sudo chown "$USER":"$USER" /opt/flask-infit-api
+wget -O- https://apt.releases.hashicorp.com/gpg \
+  | sudo gpg --dearmor \
+  -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
 ```
 
-Put the `docker-compose.prod.yml` and `.env` in the new directory:
+Add repository:
 
 ```
-/opt/flask-infit-api/
-├── docker-compose.prod.yml
-└── .env
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(grep -oP '(?<=UBUNTU_CODENAME=).*' /etc/os-release || lsb_release -cs) main" \
+  | sudo tee /etc/apt/sources.list.d/hashicorp.list
 ```
 
-`.env` needs to contain production secrets. Consult `.env.example`.
+Install:
+
+```
+sudo apt update
+sudo apt install -y terraform
+```
+
+## Install AWS CLI
+
+Architecture dependent:
+
+```
+uname -r
+```
+
+Download installer:
+
+```
+curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" \
+  -o "awscliv2.zip"
+```
+
+Extract:
+
+```
+unzip awscliv2.zip
+```
+
+Execute:
+
+```
+sudo ./aws/install
+```
+
+### AWS Credentials
+
+Open the AWS Console and go to the IAM dashboard.
+
+1. Create a user. E.g., `terraform-dev`
+2. Go to _Security Credentials_ -> _Create access key_
+3. Copy access key to a secure location
+
+Configure credentials:
+
+```
+aws configure --profile terraform-dev
+```
+
+Enter the access key ID, secret access key, default region (for example, us-west-2), and output format (json).
+
+Verify:
+
+```
+aws sts get-caller-identity --profile terraform-dev
+```
+
+## Setup Terraform for AWS
+
+Create a key pair:
+
+```
+ssh-keygen -t ed25519 -f ~/.ssh/flask-terraform -C "flask-terraform"
+```
+
+Get public IP:
+
+```
+curl -4 https://checkip.amazonaws.com
+```
+
+Configure:
+
+```
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+```
+
+
+## Test Terraform with AWS
+
+Initialize:
+
+```
+cd terraform
+terraform init
+terraform fmt
+terraform validate
+```
+
+Try this as well:
+
+```
+terraform plan
+```
+
+If this checks out:
+
+```
+terraform apply
+```
+
+Get instance details:
+
+```
+terraform output
+```
+
+Get `ssh` command:
+
+```
+terraform output -raw ssh_command
+```
+
+
+
+
+
 
 Protect the `.env` file:
 
@@ -96,56 +215,71 @@ rsync -a --progress --delete --update ./videos app@api.0yy.ca:/opt/flask-infit-a
 
 ## GitHub Secrets
 
+### Application Configuration
+
+For creating a `.env` on the EC2 instance.
+
+In the GitHub repository:
+
+1. Go to Settings → Environments → production.
+2. Under Environment variables, add these variables:
+
+```
+VIRTUAL_HOST
+LETSENCRYPT_EMAIL
+BASE_URL
+TITLE
+```
+
+### Actions SSH
+
 Create a key on the local machine:
 
 ```
-ssh-keygen -t ed25519 -C "github-actions-flask-infit-api-deploy"
+ssh-keygen -t ed25519 \
+  -C "github-actions-flask-deploy" \
+  -f ~/.ssh/flask-deploy \
+  -N ""
 ```
 
-When prompted, name it:
+This creates two files:
+
+- `~/.ssh/flask-deploy` — private key.
+- `~/.ssh/flask-deploy.pub` — public key.
+
+The private key will be used by GitHub Actions. The public key will be installed on EC2.
+
+#### Add the private key to GitHub Actions
+
+Copy the private key to the clipboard:
 
 ```
-~/.ssh/github-actions-flask-infit-api-deploy
+xclip -selection clipboard <  ~/.ssh/flask-deploy
 ```
+
+In the GitHub repository, navigate to:
+
+**Settings → Environments → production → Environment secrets**
+
+Create or update this secret with the private key:
+
+```
+DEPLOY_SSH_KEY
+```
+
+#### Add the public key to `terraform.tsvars` 
 
 Copy the public key to the clipboard:
 
 ```
-xclip -selection clipboard <  ~/.ssh/github-actions-flask-infit-api-deploy.pub
+xclip -selection clipboard <  ~/.ssh/flask-deploy.pub
 ```
 
-Login to the host machine:
+Paste the value `terraform.tsvars`. E.g.:
 
 ```
-vim ~/.ssh/authorized_keys
+github_actions_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... github-actions-flask-deploy"
 ```
-
-Paste the public key as one line.
-
-Test the key from the local machine:
-
-```
-ssh -i ~/.ssh/github-actions-flask-infit-api-deploy deploy@YOUR_SERVER_IP
-```
-
-Add the private key to GitHub. Go to the repository:
-
-**Settings → Secrets and variables → Actions → New repository secret**
-
-Create:
-
-```
-Name:
-SERVER_SSH_KEY
-```
-
-Then get your private key:
-
-```
-xclip -selection clipboard <  ~/.ssh/github-actions-flask-infit-api-deploy
-```
-
-Paste it into the GitHub secret.
 
 
 Then add:
