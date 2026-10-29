@@ -10,3 +10,29 @@ htmlcov/
 .env.*
 !.env.example
 *.sw*
+
+# Terraform working directory
+.terraform/
+
+# Terraform state
+*.tfstate
+*.tfstate.*
+
+# Variable files containing local configuration
+terraform.tfvars
+*.tfvars
+!*.tfvars.example
+
+# Crash logs
+crash.log
+crash.*.log
+
+# Local override files
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Sensitive plan files
+*.tfplan
+
