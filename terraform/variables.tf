@@ -34,3 +34,13 @@ variable "github_actions_public_key" {
   type        = string
 }
 
+variable "ghcr_username" {
+  description = "GitHub username for GHCR authentication"
+  type        = string
+}
+
+variable "ghcr_token" {
+  description = "GitHub token with read:packages permission"
+  type        = string
+  sensitive   = true
+}
