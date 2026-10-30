@@ -160,6 +160,34 @@ jobs:
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
 
+      - name: Validate deployment configuration
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          VIRTUAL_HOST: ${{ vars.VIRTUAL_HOST }}
+          LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
+          BASE_URL: ${{ vars.BASE_URL }}
+          TITLE: ${{ vars.TITLE }}
+        run: |
+          set -euo pipefail
+
+          for name in \
+            DEPLOY_HOST \
+            DEPLOY_USER \
+            VIRTUAL_HOST \
+            LETSENCRYPT_EMAIL \
+            BASE_URL \
+            TITLE
+          do
+            if [[ -z "${!name}" ]]; then
+              echo "::error::$name is not configured."
+              exit 1
+            fi
+          done
+
+          echo "Deployment configuration validated."
+
+
       - name: Configure production environment
         env:
           DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
