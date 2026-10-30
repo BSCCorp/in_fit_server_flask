@@ -2,10 +2,10 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [devops/aws-terraform]
 
   pull_request:
-    branches: [main]
+    branches: [devops/aws-terraform]
 
   workflow_dispatch:
 
@@ -159,6 +159,29 @@ jobs:
 
           printf '%s\n' "$SSH_KNOWN_HOSTS" > ~/.ssh/known_hosts
           chmod 600 ~/.ssh/known_hosts
+
+      - name: Configure production environment
+        env:
+          DEPLOY_HOST: ${{ secrets.DEPLOY_HOST }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          VIRTUAL_HOST: ${{ vars.VIRTUAL_HOST }}
+          LETSENCRYPT_EMAIL: ${{ vars.LETSENCRYPT_EMAIL }}
+          BASE_URL: ${{ vars.BASE_URL }}
+          TITLE: ${{ vars.TITLE }}
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          ssh \
+            -i ~/.ssh/deploy_key \
+            -o StrictHostKeyChecking=yes \
+            "${DEPLOY_USER}@${DEPLOY_HOST}" \
+            "umask 077 && cat > /opt/flask-infit-api/.env && chmod 600 /opt/flask-infit-api/.env" <<EOF
+          VIRTUAL_HOST=${VIRTUAL_HOST}
+          LETSENCRYPT_EMAIL=${LETSENCRYPT_EMAIL}
+          BASE_URL=${BASE_URL}
+          TITLE=${TITLE}
+          EOF
 
       - name: Copy production configuration
         env:
