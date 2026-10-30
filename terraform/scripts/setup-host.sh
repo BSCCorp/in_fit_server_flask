@@ -21,7 +21,7 @@ chmod a+r /etc/apt/keyrings/docker.asc
 
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.asc] https://download.docker.com/linux/ubuntu \
-  ${VERSION_CODENAME} stable" \
+  $${VERSION_CODENAME} stable" \
   > /etc/apt/sources.list.d/docker.list
 
 # Install Docker Engine and Docker Compose.
@@ -42,6 +42,19 @@ usermod -aG docker ubuntu
 
 echo "Docker installation completed successfully."
 
+#
+# Authenticate Docker with GitHub Container Registry.
+#
+
+echo "Authenticating Docker with GHCR..."
+
+printf '%s' '${ghcr_token}' | \
+  docker login ghcr.io \
+    --username '${ghcr_username}' \
+    --password-stdin
+
+echo "GHCR authentication completed successfully."
+
 # Create the application directories.
 mkdir -p /opt/flask-infit-api/videos
 
@@ -51,20 +64,23 @@ chown -R ubuntu:ubuntu /opt/flask-infit-api
 echo "Application directories created successfully."
 
 #
-# Setup Action key
+# Configure SSH access for administration and deployment.
 #
 
 # Ensure the Ubuntu user's SSH directory exists.
 install -d -m 700 -o ubuntu -g ubuntu /home/ubuntu/.ssh
 
+# Create authorized_keys if it doesn't exist.
 touch /home/ubuntu/.ssh/authorized_keys
 
 # Add both public keys without removing existing authorized keys.
 cat <<'SSH_KEYS' >> /home/ubuntu/.ssh/authorized_keys
-${aws_key_pair.flask_api.public_key}
-${aws_key_pair.github_actions.public_key}
+${admin_public_key}
+${deploy_public_key}
 SSH_KEYS
 
+# Set correct ownership and permissions.
 chown ubuntu:ubuntu /home/ubuntu/.ssh/authorized_keys
 chmod 600 /home/ubuntu/.ssh/authorized_keys
 
+echo "SSH access for administration and deployment configured."
