@@ -87,12 +87,10 @@ resource "aws_security_group" "flask_api" {
 
 # Create the Ubuntu server.
 resource "aws_instance" "flask_api" {
-  user_data_replace_on_change = true
-
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
   subnet_id                   = data.aws_subnets.default.ids[0]
-  associate_public_ip_address = true
+  associate_public_ip_address = false
 
   vpc_security_group_ids = [
     aws_security_group.flask_api.id
@@ -106,11 +104,33 @@ resource "aws_instance" "flask_api" {
     encrypted   = true
   }
 
-  user_data = file("${path.module}/scripts/setup-host.sh")
+  user_data = templatefile("${path.module}/scripts/setup-host.sh", {
+    admin_public_key  = aws_key_pair.flask_api.public_key
+    deploy_public_key = aws_key_pair.github_actions.public_key
+    ghcr_username     = var.ghcr_username
+    ghcr_token        = var.ghcr_token
+  })
+
+  user_data_replace_on_change = true
 
   tags = {
     Name = "flask-api-demo"
   }
+}
+
+# Allocate a static public IP address.
+resource "aws_eip" "flask_api" {
+  domain = "vpc"
+
+  tags = {
+    Name = "flask-api-eip"
+  }
+}
+
+# Associate the Elastic IP with the EC2 instance.
+resource "aws_eip_association" "flask_api" {
+  instance_id   = aws_instance.flask_api.id
+  allocation_id = aws_eip.flask_api.id
 }
 
 # GitHub Actions key
