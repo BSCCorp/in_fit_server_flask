@@ -160,7 +160,6 @@ Configure:
 cp terraform/terraform.tfvars.example terraform/terraform.tfvars
 ```
 
-
 ## Test Terraform with AWS
 
 Initialize:
@@ -221,8 +220,8 @@ For creating a `.env` on the EC2 instance.
 
 In the GitHub repository:
 
-1. Go to Settings → Environments → production.
-2. Under Environment variables, add these variables:
+1. Go to **Settings → Environments → production**.
+2. Under Environment variables, add and set these variables:
 
 ```
 VIRTUAL_HOST
@@ -267,7 +266,16 @@ Create or update this secret with the private key:
 DEPLOY_SSH_KEY
 ```
 
-#### Add the public key to `terraform.tsvars` 
+Then add:
+
+```
+SERVER_USER = ubuntu
+SERVER_HOST = ec2.0yy.ca
+```
+
+`ubuntu` is the default user provided on EC2 instantiation. The server host DNS needs to be configured after Amazon spits out an IP address.
+
+#### Add the public key to `terraform.tsvars`
 
 Copy the public key to the clipboard:
 
@@ -280,20 +288,6 @@ Paste the value `terraform.tsvars`. E.g.:
 ```
 github_actions_public_key = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAA... github-actions-flask-deploy"
 ```
-
-
-Then add:
-
-```
-SERVER_HOST = 203.0.113.10
-```
-
-And,
-
-```
-SERVER_USER = deploy
-```
-
 
 ## Create a GitHub token for the server
 
@@ -312,47 +306,37 @@ You only need package read access for the server.
 Don't use the GitHub Actions SSH key for this—this is a separate credential.
 
 
-Log Docker into GHCR on Ubuntu. On the server, run:
+### Set environment variables
+
+The access token is sensitive. We don't want anything sensitive falling into a `*.tfstate` file or similar.
+
+From the Terraform directory, run:
 
 ```
-docker login ghcr.io
+export TF_VAR_ghcr_username="your-github-username"
+export TF_VAR_ghcr_token="your-github-token"
 ```
 
-When prompted:
+Terraform automatically recognizes these variables.
+
+### Run Terraform
+
+When it comes time to provision the resources, execute:
 
 ```
-Username:
+terraform init
+terraform plan
+terraform apply
 ```
 
-enter your GitHub username.
+### Remove the environment variables afterward
 
-For:
-
-```
-Password:
-```
-
-paste the GitHub token.
-
-You should get:
+When everything is deployed, smoke the exported variables.
 
 ```
-Login Succeeded
+unset TF_VAR_ghcr_username
+unset TF_VAR_ghcr_token
 ```
-
-Then test:
-
-```
-docker pull ghcr.io/bsccorp/flask-infit-api:latest
-```
-
-and:
-
-```
-docker pull ghcr.io/bsccorp/flask-infit-api-web:latest
-```
-
-If both work, your authentication is set up.
 
 ## Automate deployment over SSH
 
@@ -407,61 +391,29 @@ This will provide the value for the `DEPLOY_SSH_KEY` Action value.
 
 #### `DEPLOY_KNOWN_HOSTS`
 
-`DEPLOY_KNOWN_HOSTS` is a GitHub Actions secret containing the SSH host key for the Ubuntu server. It lets GitHub Actions verify that it's connecting to the actual server when deploying, rather than an impostor.
+`DEPLOY_KNOWN_HOSTS` is a GitHub Actions secret containing the SSH host key for the Ubuntu server. It lets GitHub Actions verify that it's connecting to the actual server when deploying, rather than an impostor. This requires logging into the EC2 instance.
 
-On the server, execute:
-
-```
-sudo ssh-keygen -lf /etc/ssh/ssh_host_ed25519_key.pub
-```
-
-Retrieve the public host key:
+On the server, retrieve the public host key:
 
 ```
 sudo cat /etc/ssh/ssh_host_ed25519_key.pub
 ```
 
-Format the key. The known_hosts file needs the hostname or IP address followed by the public host key.
+Format the key. The `known_hosts` file needs the hostname or IP address followed by the public host key.
 
-For example, if the server is 203.0.113.10, the entry would look like:
 
-```
-203.0.113.10 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKeyData
-```
-
-#### Set Action Secrets
-
-In the GitHub repository, open **Settings → Secrets and variables → Actions** and configure these repository or environment secrets:
-
-- DEPLOY_HOST: Server hostname or IP address
-- DEPLOY_USER: SSH deployment username
-- DEPLOY_SSH_KEY: Private deployment key
-- DEPLOY_KNOWN_HOSTS: Verified SSH host-key entry
-
-## TODO: Require CI to pass before merging
-
-In repository:
-
-1. Open **Settings → Rulesets.**
-2. Create a branch ruleset targeting main.
-3. Require pull requests before merging.
-4. Require the status checks to pass.
-5. Block force pushes and deletion of main.
-6. Require review if your workflow calls for it.
-
-This prevents ordinary changes from bypassing the automated checks.
-
-The CI job is named `test`, so that is the status check to select.
-
-## TODO: Versioning, rollback
-
-## Server-side
-
-Once deployed, remember to set the `IMAGE_REF` to inspect the container, E.g.:
+For example, if the server is 3.150.24.167, the entry would look like:
 
 ```
-export IMAGE_REF="$(cat current-image)"
-docker compose -f docker-compose.prod.yml config
+3.150.24.167 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIExamplePublicKeyData
 ```
 
+Paste this value into the `DEPLOY_KNOWN_HOSTS` secret.
+
+
+## Deploy via push
+
+```
+git push
+```
 
