@@ -85,12 +85,52 @@ resource "aws_security_group" "flask_api" {
   }
 }
 
+#
+# EC2 IAM role for Systems Manager
+#
+
+resource "aws_iam_role" "flask_api_ssm" {
+  name = "flask-api-ec2-ssm"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+
+    Statement = [{
+      Effect = "Allow"
+
+      Principal = {
+        Service = "ec2.amazonaws.com"
+      }
+
+      Action = "sts:AssumeRole"
+    }]
+  })
+
+  tags = {
+    Name      = "flask-api-ec2-ssm"
+    ManagedBy = "Terraform"
+  }
+}
+
+resource "aws_iam_role_policy_attachment" "flask_api_ssm" {
+  role       = aws_iam_role.flask_api_ssm.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
+}
+
+resource "aws_iam_instance_profile" "flask_api" {
+  name = "flask-api-ec2-ssm"
+  role = aws_iam_role.flask_api_ssm.name
+}
+
+
 # Create the Ubuntu server.
 resource "aws_instance" "flask_api" {
   ami                         = data.aws_ami.ubuntu.id
   instance_type               = var.instance_type
   subnet_id                   = data.aws_subnets.default.ids[0]
   associate_public_ip_address = false
+
+  iam_instance_profile = aws_iam_instance_profile.flask_api.name
 
   vpc_security_group_ids = [
     aws_security_group.flask_api.id
@@ -105,10 +145,7 @@ resource "aws_instance" "flask_api" {
   }
 
   user_data = templatefile("${path.module}/scripts/setup-host.sh", {
-    admin_public_key  = aws_key_pair.flask_api.public_key
-    deploy_public_key = aws_key_pair.github_actions.public_key
-    ghcr_username     = var.ghcr_username
-    ghcr_token        = var.ghcr_token
+    admin_public_key = aws_key_pair.flask_api.public_key
   })
 
   user_data_replace_on_change = true
@@ -133,14 +170,8 @@ resource "aws_eip_association" "flask_api" {
   allocation_id = aws_eip.flask_api.id
 }
 
-# GitHub Actions key
-resource "aws_key_pair" "github_actions" {
-  key_name   = "flask-api-github-actions"
-  public_key = var.github_actions_public_key
-
-  tags = {
-    Name      = "flask-api-github-actions"
-    ManagedBy = "Terraform"
-  }
+resource "aws_iam_role_policy_attachment" "flask_api_ecr" {
+  role       = aws_iam_role.flask_api_ssm.name
+  policy_arn = "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryReadOnly"
 }
 

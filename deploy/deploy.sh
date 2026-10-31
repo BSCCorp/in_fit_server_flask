@@ -40,6 +40,24 @@ rollback() {
     fi
 }
 
+AWS_REGION="${AWS_REGION:-us-east-2}"
+APP_DIR="/opt/flask-infit-api"
+COMPOSE_FILE="${APP_DIR}/docker-compose.prod.yml"
+
+NEW_IMAGE="${1:?Usage: deploy.sh <image-reference>}"
+
+ECR_REGISTRY="${NEW_IMAGE%%/*}"
+
+
+echo "Authenticating with Amazon ECR..."
+
+aws ecr get-login-password --region "$AWS_REGION" |
+    docker login \
+        --username AWS \
+        --password-stdin "$ECR_REGISTRY"
+
+echo "ECR authentication successful."
+
 docker pull "$NEW_IMAGE"
 
 if ! docker compose -f "$COMPOSE_FILE" up -d; then

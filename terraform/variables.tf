@@ -1,6 +1,7 @@
 variable "aws_region" {
-  description = "AWS region where resources will be created"
+  description = "AWS region"
   type        = string
+  default     = "us-east-2"
 }
 
 variable "instance_type" {
@@ -29,18 +30,8 @@ variable "ssh_allowed_cidr" {
   }
 }
 
-variable "github_actions_public_key" {
-  description = "SSH public key for GitHub Actions deployment"
+variable "github_repository" {
+  description = "GitHub repository in OWNER/REPOSITORY format"
   type        = string
 }
 
-variable "ghcr_username" {
-  description = "GitHub username for GHCR authentication"
-  type        = string
-}
-
-variable "ghcr_token" {
-  description = "GitHub token with read:packages permission"
-  type        = string
-  sensitive   = true
-}

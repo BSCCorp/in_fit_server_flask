@@ -42,19 +42,6 @@ usermod -aG docker ubuntu
 
 echo "Docker installation completed successfully."
 
-#
-# Authenticate Docker with GitHub Container Registry.
-#
-
-echo "Authenticating Docker with GHCR..."
-
-printf '%s' '${ghcr_token}' | \
-  docker login ghcr.io \
-    --username '${ghcr_username}' \
-    --password-stdin
-
-echo "GHCR authentication completed successfully."
-
 # Create the application directories.
 mkdir -p /opt/flask-infit-api/videos
 
@@ -73,10 +60,9 @@ install -d -m 700 -o ubuntu -g ubuntu /home/ubuntu/.ssh
 # Create authorized_keys if it doesn't exist.
 touch /home/ubuntu/.ssh/authorized_keys
 
-# Add both public keys without removing existing authorized keys.
+# Add public key without removing existing authorized keys.
 cat <<'SSH_KEYS' >> /home/ubuntu/.ssh/authorized_keys
 ${admin_public_key}
-${deploy_public_key}
 SSH_KEYS
 
 # Set correct ownership and permissions.
